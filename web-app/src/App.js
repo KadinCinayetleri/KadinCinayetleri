@@ -2,7 +2,7 @@
 import './App.css';
 import AccountMenu from './components/Navbar';
 import TurkeyMap from 'turkey-map-react';
-import { Grid } from '@mui/material';
+import { Box, Grid } from '@mui/material';
 import ListLeft from './components/ListLeft';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
@@ -53,14 +53,30 @@ function App() {
       <header className="App-header">
         <AccountMenu></AccountMenu>
       </header>
-      <Grid container>
+      <Grid container spacing={2}>
         <Grid item xs={2}>
           <ListLeft data={selectedCity}/>
-        </Grid>
-        <Grid item xs={10}>
-          <TurkeyMap showTooltip hoverable onClick={handleClick} cityWrapper={renderCity} viewBox={{top: 0, left: 0, width: 1050, height: 585}}></TurkeyMap>
-        </Grid>
-      </Grid>      
+        </Grid>   
+        <Grid item xs={10}  rowSpacing={2}>
+          <Grid item xs={12}>
+            <Box
+              sx={{
+                width: "auto",
+                height: 30,
+                backgroundColor: 'warning.light',
+                opacity: [0.9, 0.8, 0.7],
+                margin: 2,
+                borderRadius: 20
+              }}
+            >
+              
+            </Box>
+          </Grid>
+          <Grid item xs={12}>
+            <TurkeyMap showTooltip hoverable onClick={handleClick} cityWrapper={renderCity} viewBox={{top: 0, left: 0, width: 1050, height: 585}}></TurkeyMap>
+          </Grid>
+        </Grid>      
+      </Grid>     
     </div>
   );
 }
