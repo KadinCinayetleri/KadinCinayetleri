@@ -2,17 +2,25 @@
 import './App.css';
 import AccountMenu from './components/Navbar';
 import TurkeyMap from 'turkey-map-react';
-import { Box, Grid } from '@mui/material';
+import { Box, Grid, Drawer, Button, Paper, Accordion, AccordionSummary, Typography, AccordionDetails, TextField, FormControlLabel, FormGroup, Checkbox} from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import dayjs, { Dayjs } from 'dayjs';
 import ListLeft from './components/ListLeft';
-import { useEffect, useState } from 'react';
+import { useEffect, useState} from 'react';
 import axios from 'axios';
 
 function App() {
   const [cityCount, setCityCount] = useState([]);
   const [selectedCity, setSelectedCity] = useState("");
+  const [drawer, setDrawer] = useState(false)
+  const [baslangicDate, setBaslangicDate] = useState(dayjs('2008-04-07'));
+  const [bitisDate, setBitisDate] = useState(dayjs());
   useEffect(()=>{
     axios
-    .get("http://localhost:4000/getcitycount")
+    .get("http://192.168.1.49:4000/getcitycount")
     .then(function (response) {
       setCityCount(response.data)
     });
@@ -53,6 +61,69 @@ function App() {
       <header className="App-header">
         <AccountMenu></AccountMenu>
       </header>
+      <Drawer
+        
+        anchor={"right"}
+        open={drawer}
+        onClose={() => {setDrawer(false)}}
+      >
+            <Paper sx={{height: '100vh', width: 250, overflow: 'auto'}}>
+            
+            <Accordion>
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                aria-controls="panel1a-content"
+                id="panel1a-header"
+              >
+                <Typography>Tarih</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DatePicker
+                    label="Başlangıç"
+                    value={baslangicDate}
+                    onChange={(newValue) => {
+                      setBaslangicDate(newValue);
+                    }}
+                    renderInput={(params) => <TextField {...params} />}
+                  />
+                  <DatePicker
+                    label="Bitiş"
+                    value={bitisDate}
+                    onChange={(newValue) => {
+                      setBitisDate(newValue);
+                    }}
+                    renderInput={(params) => <TextField {...params} />}
+                  />
+                </LocalizationProvider>
+              </AccordionDetails>
+            </Accordion>
+
+            <Accordion>
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                aria-controls="panel1a-content"
+                id="panel1a-header"
+              >
+                <Typography>Yaş</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                
+                <FormGroup>
+                  <FormControlLabel control={<Checkbox />} label="Reşit" />
+                  <FormControlLabel control={<Checkbox />} label="Reşit Değil" />
+                </FormGroup>
+            
+
+              </AccordionDetails>
+            </Accordion>
+
+            
+
+            </Paper>
+
+      </Drawer>
+      
       <Grid container spacing={2}>
         <Grid item xs={2}>
           <ListLeft data={selectedCity}/>
@@ -62,13 +133,26 @@ function App() {
             <Box
               sx={{
                 width: "auto",
-                height: 30,
+                maxHeight: 50,
                 backgroundColor: 'warning.light',
                 opacity: [0.9, 0.8, 0.7],
                 margin: 2,
-                borderRadius: 20
+                padding: 0.5,
+                borderRadius: 20,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
               }}
             >
+              <Grid container spacing={2}>
+                <Grid item xs={11}>
+                </Grid>
+                <Grid item xs={1}>
+                  <Button sx={{height: 25, borderRadius: 5}} onClick={()=>{setDrawer(true)}} variant="contained" color="success">
+                    Filter
+                  </Button>
+                </Grid>
+              </Grid>
               
             </Box>
           </Grid>
@@ -80,5 +164,7 @@ function App() {
     </div>
   );
 }
+
+
 
 export default App;

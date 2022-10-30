@@ -84,7 +84,7 @@ export default function ListLeft(props) {
       let cancel
       axios({
         method: 'GET',
-        url: 'http://localhost:4000/murderall/'+pageNumber,
+        url: 'http://192.168.1.49:4000/murderall/'+pageNumber,
         cancelToken: new axios.CancelToken(c => cancel = c)
       })
       .then(function (response) {
@@ -102,7 +102,7 @@ export default function ListLeft(props) {
       let cancel
       axios({
         method: 'GET',
-        url: 'http://localhost:4000/murderbycity/'+selectedCity+"/"+pageNumber,
+        url: 'http://192.168.1.49:4000/murderbycity/'+selectedCity+"/"+pageNumber,
         cancelToken: new axios.CancelToken(c => cancel = c)
       })
       .then(function (response) {
