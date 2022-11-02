@@ -18,22 +18,22 @@ function App() {
   const [cityCount, setCityCount] = useState([]);
   const [selectedCity, setSelectedCity] = useState("");
   const [drawer, setDrawer] = useState(false)
-  const [baslangicDate, setBaslangicDate] = useState(dayjs('2008-04-07'));
-  const [bitisDate, setBitisDate] = useState(dayjs());
-  const [yasCheck, setYasCheck] = useState({resit: true, resit_degil: true});
-  const [filter, setFilter] = useState({filter: false, date: {baslangic: baslangicDate, bitis: bitisDate}, yas: yasCheck});
+  const [baslangicDate, setBaslangicDate] = useState(null);
+  const [bitisDate, setBitisDate] = useState(null);
+  const [yasCheck, setYasCheck] = useState({resit: false, resit_degil: false});
+  const [filterStack, setFilterStack] = useState([]);
+  const [filterIdCounter, setFilterIdCounter] = useState(0);
   useEffect(()=>{
     axios
-    .get("http://192.168.1.49:4000/getcitycount")
+    .get("http://localhost:4000/getcitycount")
     .then(function (response) {
       setCityCount(response.data)
     });
   },[])
-  useEffect(()=>{
-    console.log(filter)
-  }, [filter]);
-  const handleClick = ({plateNumber}) => {
-    setSelectedCity(plateNumber)
+
+  const handleClick = async ({plateNumber}) => {
+    await setSelectedCity(plateNumber)
+    processFilter("city")
   };
 
   const renderCity = (cityComponent, city) => {
@@ -68,21 +68,37 @@ function App() {
     });
   };
 
-  const processFilter = () => {
-    setFilter(prevState => ({
-      ...prevState,
-      date: {baslangic: baslangicDate, bitis: bitisDate}
-    }));
-    setFilter(prevState => ({
-      ...prevState,
-      yas: {resit: yasCheck.resit, resit_degil: yasCheck.resit_degil}
-    }));
-    setFilter(prevState => ({
-      ...prevState,
-      filter: true,
-    }));
-    setDrawer(false)
+  const processFilter = async (type) => {
+    if(type === "date"){
+      setFilterStack(filterStack.filter(item => item.filterType !== "date"))
+      
+      if(baslangicDate !== null || bitisDate !== null){
+        console.log(baslangicDate)
+        setFilterStack(oldStack => [...oldStack, {id:filterIdCounter+1 ,filterType: "date", value: {start: baslangicDate.$D+"/"+(baslangicDate.$M+1)+"/"+baslangicDate.$y, end: bitisDate.$D+"/"+(bitisDate.$M+1)+"/"+bitisDate.$y}}])
+        await setFilterIdCounter(old => old+1)
+      }
+      
+    }else if(type === "age"){
+      setFilterStack(filterStack.filter(item => item.filterType !== "age"))
+      console.log(yasCheck.resit, yasCheck.resit_degil)
+      if(yasCheck.resit){
+        setFilterStack(oldStack => [...oldStack, {id:filterIdCounter+1 ,filterType: "age", value: "Reşit"}])
+        await setFilterIdCounter(old => old+1)
+      } 
+      if(yasCheck.resit_degil){
+        setFilterStack(oldStack => [...oldStack, {id:filterIdCounter+2 ,filterType: "age", value: "Reşit Değil"}])
+        setFilterIdCounter(old => old+1)
+      }
+    }else if(type === "city"){
+      setFilterStack(filterStack.filter(item => item.filterType !== "city"))
+      setFilterStack(oldStack => [...oldStack, {id:filterIdCounter+1 ,filterType: "city", value: selectedCity}])
+      setFilterIdCounter(old => old+1)
+    }
   };
+  const deleteFilter = (id) => {
+    setFilterStack(filterStack.filter(item => item.id !== id))
+  };
+
   return (
     <div className="App">
       <header className="App-header">
@@ -95,8 +111,7 @@ function App() {
         onClose={() => {setDrawer(false)}}
       >
             <Paper sx={{height: '100vh', width: 250, overflow: 'auto'}}>
-            
-            <Accordion>
+            <Accordion defaultExpanded={true}>
               <AccordionSummary
                 expandIcon={<ExpandMoreIcon />}
                 aria-controls="panel1a-content"
@@ -106,27 +121,36 @@ function App() {
               </AccordionSummary>
               <AccordionDetails>
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
-                  <DatePicker
-                    label="Başlangıç"
-                    value={baslangicDate}
-                    onChange={(newValue) => {
-                      setBaslangicDate(newValue);
-                    }}
-                    renderInput={(params) => <TextField {...params} />}
-                  />
-                  <DatePicker
-                    label="Bitiş"
-                    value={bitisDate}
-                    onChange={(newValue) => {
-                      setBitisDate(newValue);
-                    }}
-                    renderInput={(params) => <TextField {...params} />}
-                  />
+                  <Grid container rowSpacing={2}>
+                    <Grid item>
+                      <DatePicker
+                        label="Başlangıç"
+                        value={baslangicDate}
+                        maxDate={dayjs()}
+                        onChange={(newValue) => {
+                          setBaslangicDate(newValue);
+                        }}
+                        renderInput={(params) => <TextField {...params} />}
+                      />
+                    </Grid>
+                    <Grid item>
+                      <DatePicker
+                        label="Bitiş"
+                        value={bitisDate}
+                        maxDate={dayjs()}
+                        onChange={(newValue) => {
+                          setBitisDate(newValue);
+                        }}
+                        renderInput={(params) => <TextField {...params} />}
+                      />
+                    </Grid>
+                  </Grid>
                 </LocalizationProvider>
+                <Button sx={{height: 40, borderRadius: 1, marginTop: 5, marginLeft:1}} onClick={()=>processFilter("date")} variant="contained" color="success"> Uygula</Button>
               </AccordionDetails>
             </Accordion>
 
-            <Accordion>
+            <Accordion defaultExpanded={true}>
               <AccordionSummary
                 expandIcon={<ExpandMoreIcon />}
                 aria-controls="panel1a-content"
@@ -140,11 +164,11 @@ function App() {
                   <FormControlLabel control={<Checkbox />} checked={yasCheck.resit} onChange={handleCheck} name="resit" label="Reşit" />
                   <FormControlLabel control={<Checkbox />} checked={yasCheck.resit_degil} onChange={handleCheck} name="resit_degil" label="Reşit Değil" />
                 </FormGroup>
-            
-
+                
+                <Button sx={{height: 40, borderRadius: 1, marginTop: 5, marginLeft:1}} onClick={()=>processFilter("age")} variant="contained" color="success"> Uygula</Button>
               </AccordionDetails>
             </Accordion>
-            <Button sx={{height: 40, borderRadius: 1, marginTop: 5, marginLeft:1}} onClick={processFilter} variant="contained" color="success"> Uygula</Button>
+            
             
 
             </Paper>
@@ -169,7 +193,7 @@ function App() {
               <FilterAltIcon></FilterAltIcon>
             </Button>
           </Grid>
-          {(selectedCity !== "" || filter.filter === true) &&
+          {(filterStack.length !== 0) &&
             
               <Grid item xs={11}>
                 <Box
@@ -188,7 +212,16 @@ function App() {
                 >
                   <Grid container spacing={2}>
                     <Grid sx={{display: "flex", alignItems: "center"}} item xs={11}>
-                      {selectedCity !== "" && <Chip sx={{height: 25, backgroundColor: "white"}} label={cities.find(city => city.plate === selectedCity).name} onDelete={() => {setSelectedCity("")}} />}
+                      {filterStack.map(function(item, i){
+                        if(item.filterType === "city"){
+                          return (<Chip sx={{height: 25, backgroundColor: "white", marginRight: 0.5}} label={cities.find(city => city.plate === selectedCity).name} onDelete={() => {deleteFilter(item.id); setSelectedCity("")}} />);
+                        }else if(item.filterType === "date"){
+                          return (<Chip sx={{height: 25, backgroundColor: "white", marginRight: 0.5}} label={item.value.start+" - "+item.value.end} onDelete={() => deleteFilter(item.id)} />);
+                        }else if(item.filterType === "age"){
+                          return (<Chip sx={{height: 25, backgroundColor: "white", marginRight: 0.5}} label={item.value} onDelete={() => deleteFilter(item.id)} />);
+                        }
+                        
+                      })}
                     </Grid>
                     
                   </Grid>
