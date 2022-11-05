@@ -37,10 +37,11 @@ export default function ListLeft(props) {
   const [source, setSource] = React.useState("");
   const [name, setName] = React.useState("");
   const handleOpen = (data) => {
+    const date = new Date(data.date).toLocaleDateString("tr-TR")
     setName(data.name)
     setAge(data.age)
     setCity(data.city)
-    setDate(data.date)
+    setDate(date)
     setWhy(data.why[0] ? data.why[0].why : "Bilinmiyor")
     setByWho(data.byWho[0] ? data.byWho[0].byWho : "Bilinmiyor")
     setProtection(data.protection)
@@ -55,7 +56,8 @@ export default function ListLeft(props) {
   const [isLoading, setIsLoading] = React.useState(false);
   const [hasMore, setHasMore] = React.useState(true);
   const [selectedCity, setSelectedCity] = React.useState(props.data);
-  const [pageNumber, setPageNumber] = React.useState(1)
+  const [pageNumber, setPageNumber] = React.useState(1);
+  const [filterStack, setFilterStack] = React.useState(props.filter);
   const observer = React.useRef();
   const lastMurderRef = React.useCallback(node =>{
     if(isLoading || !hasMore) return;
@@ -76,53 +78,56 @@ export default function ListLeft(props) {
     setPageNumber(1)
     setHasMore(true)
     setSelectedCity(props.data)
-  },[props.data])
+    setFilterStack(props.filter)
+  },[props.data,props.filter])
 
   React.useEffect(()=>{
     setIsLoading(true)
-    if(selectedCity === ""){
-      let cancel
-      axios({
-        method: 'GET',
-        url: 'http://192.168.1.49:4000/murderall/'+pageNumber,
-        cancelToken: new axios.CancelToken(c => cancel = c)
-      })
-      .then(function (response) {
-        if(response.data.error === undefined){
-          setSideData(old => old.concat(response.data))
-          setIsLoading(false)
-        }else{
-          setHasMore(false)
-          setIsLoading(false)
-        }
-      });
-      return () => cancel()
-      
-    }else{
-      let cancel
-      axios({
-        method: 'GET',
-        url: 'http://192.168.1.49:4000/murderbycity/'+selectedCity+"/"+pageNumber,
-        cancelToken: new axios.CancelToken(c => cancel = c)
-      })
-      .then(function (response) {
-        if(response.data.error === undefined){
-          setSideData(old => old.concat(response.data))
-          setIsLoading(false)
-        }else{
-          setHasMore(false)
-          setIsLoading(false)
-        }
-      });
-      return () => cancel()
+    let query = "page="+pageNumber;
+    if(filterStack != []){
+      query += calcQuery(filterStack);
     }
+    console.log(query)
+    let cancel
+    axios({
+      method: 'GET',
+      url: 'http://localhost:4000/getmurder?'+query,
+      cancelToken: new axios.CancelToken(c => cancel = c)
+    })
+    .then(function (response) {
+      if(response.data.error === undefined){
+        setSideData(old => old.concat(response.data))
+        setIsLoading(false)
+      }else{
+        setHasMore(false)
+        setIsLoading(false)
+      }
+    });
+    return () => cancel()
     
-  },[selectedCity, pageNumber])
+  },[selectedCity, pageNumber, filterStack])
+
+  const calcQuery = (filter) => {
+    let query = "";
+    filterStack.forEach(element => {
+      if(element.filterType === "city"){
+        query += "&city="+selectedCity
+      }
+      if(element.filterType === "age"){
+        query += "&age="+element.value
+      }
+      if(element.filterType === "date"){
+        query += "&date="+element.value.start.format("YYYY-MM-DD")+element.value.end.format("YYYY-MM-DD")
+      }
+    });
+    return query
+  }
 
   return (
     <Paper style={{height: '92vh', overflow: 'auto'}}>
       <List sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
         {sideData.map((data, index)=>{
+          const date = new Date(data.date).toLocaleDateString("tr-TR")
           if(sideData.length === index + 1){
             return(
               <ListItemButton ref={lastMurderRef} onClick={()=>{handleOpen(data)}} key={index} alignItems="flex-start">
@@ -138,7 +143,7 @@ export default function ListLeft(props) {
                     >
                       {cities.find(city => city.plate === data.city).name}
                     </Typography>
-                    {" - "+data.date}
+                    {" - "+date}
                   </React.Fragment>
                 }
                 />
@@ -159,7 +164,7 @@ export default function ListLeft(props) {
                     >
                       {cities.find(city => city.plate === data.city).name}
                     </Typography>
-                    {" - "+data.date}
+                    {" - "+date}
                   </React.Fragment>
                 }
                 />

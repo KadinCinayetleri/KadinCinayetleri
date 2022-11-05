@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors")
 const mongoose = require("mongoose");
 const { default: axios } = require("axios");
+const moment = require('moment');
 const app = express();
 
 app.use(express.json())
@@ -42,67 +43,17 @@ const whySchema = mongoose.Schema({
 },{collection: "whyKilled"})
 const whyKilled = mongoose.model("whyKilled", whySchema)
 
-app.get("/murderbycity/:city/:page", (req,res) => {
+app.get("/getcitycount", (req,res) => {
     murder.aggregate([
-        { "$match": {"city": parseInt(req.params.city)} },
-        {"$unwind": "$why"},
-        { "$lookup":
-            {
-               "from": "whyKilled",
-               "localField": "why",
-               "foreignField": "id",
-               "as": "why"
-            }
-        },
-        {"$unwind": "$killerStatus"},
-        { "$lookup":
-            {
-               "from": "killerStatus",
-               "localField": "killerStatus",
-               "foreignField": "id",
-               "as": "killerStatus"
-            }
-        },
-        {"$unwind": "$byWho"},
-        { "$lookup":
-            {
-               "from": "byWho",
-               "localField": "byWho",
-               "foreignField": "id",
-               "as": "byWho"
-            }
-        },
-        {"$unwind": "$howKilled"},
-        { "$lookup":
-            {
-               "from": "howKilled",
-               "localField": "howKilled",
-               "foreignField": "id",
-               "as": "howKilled"
-            }
+    {
+        $group: {
+            _id: '$city',
+            count: { $sum: 1 } // this means that the count will increment by 1
         }
+    },
+    {$sort: {count:1}} 
     ])
     .then((items)=>{
-        const maxIndex = items.length-1;
-        const page = req.params.page;
-        if(page == 1 ){
-            if(maxIndex >= 20){
-                items = items.slice(0, 20) ;
-            }else{
-                items = items ;
-            }
-        }else{
-            if(maxIndex >= 20*page){
-                items = items.slice(((page-1)*20)+1, 20*page) ;
-            }else{
-                if(maxIndex >= ((page-1)*20)+1){
-                    items = items.slice(((page-1)*20)+1, -1) ;
-                }else{
-                    res.json({error:"404 - No more page!"});
-                    return;
-                }
-            }
-        }
         res.json(items)
     })
     .catch((err)=>{
@@ -110,9 +61,9 @@ app.get("/murderbycity/:city/:page", (req,res) => {
     })
 })
 
-app.get("/murderall/:page", (req,res) => {
-    murder.aggregate([
-        { "$match": {city: { $ne: 0 }} },
+app.get("/getmurder", (req,res) => {
+    const query = req.query
+    const filter = [
         { "$lookup":
             {
                "from": "whyKilled",
@@ -145,10 +96,30 @@ app.get("/murderall/:page", (req,res) => {
                "as": "howKilled"
             }
         }
-    ])
+    ];
+    if(query.city){
+        filter.push({ "$match": {"city": parseInt(query.city)} })
+    }else{
+        filter.push({ "$match": {city: { $ne: 0 }} })
+    }
+    if(query.date){
+        const date = query.date
+        console.log(date.slice(0,10),date.slice(10));
+        filter.push({ "$match": { date: { $gt: date.slice(0,10), $lte: date.slice(10)} } })
+    }
+    if(query.age){
+        if(query.age === "Reşit"){
+            filter.push({ "$match": { age: { $eq: "Reşit"} } })
+        }else if(query.age === "Reşit Değil"){
+            filter.push({ "$match": { age: { $eq: "Reşit Değil"} } })
+        }
+        
+    }
+    
+    murder.aggregate(filter)
     .then((items)=>{
         const maxIndex = items.length-1;
-        const page = req.params.page;
+        const page = query.page;
         if(page == 1 ){
             if(maxIndex >= 20){
                 res.json(items.slice(0, 20));
@@ -166,24 +137,6 @@ app.get("/murderall/:page", (req,res) => {
                 }
             }
         }
-    })
-    .catch((err)=>{
-        console.log(err)
-    })
-})
-
-app.get("/getcitycount", (req,res) => {
-    murder.aggregate([
-    {
-        $group: {
-            _id: '$city',
-            count: { $sum: 1 } // this means that the count will increment by 1
-        }
-    },
-    {$sort: {count:1}} 
-    ])
-    .then((items)=>{
-        res.json(items)
     })
     .catch((err)=>{
         console.log(err)

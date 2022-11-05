@@ -74,7 +74,7 @@ function App() {
       
       if(baslangicDate !== null || bitisDate !== null){
         console.log(baslangicDate)
-        setFilterStack(oldStack => [...oldStack, {id:filterIdCounter+1 ,filterType: "date", value: {start: baslangicDate.$D+"/"+(baslangicDate.$M+1)+"/"+baslangicDate.$y, end: bitisDate.$D+"/"+(bitisDate.$M+1)+"/"+bitisDate.$y}}])
+        setFilterStack(oldStack => [...oldStack, {id:filterIdCounter+1 ,filterType: "date", value: {start: baslangicDate, end: bitisDate}}])
         await setFilterIdCounter(old => old+1)
       }
       
@@ -177,7 +177,7 @@ function App() {
       
       <Grid container spacing={2}>
         <Grid item xs={2}>
-          <ListLeft data={selectedCity}/>
+          <ListLeft data={selectedCity} filter={filterStack}/>
         </Grid>   
         <Grid item xs={10}  rowSpacing={2}>
         <Grid sx={{display: "flex", alignItems: "center", justifyContent: "flex-start"}} container xs={12}>
@@ -216,7 +216,7 @@ function App() {
                         if(item.filterType === "city"){
                           return (<Chip sx={{height: 25, backgroundColor: "white", marginRight: 0.5}} label={cities.find(city => city.plate === selectedCity).name} onDelete={() => {deleteFilter(item.id); setSelectedCity("")}} />);
                         }else if(item.filterType === "date"){
-                          return (<Chip sx={{height: 25, backgroundColor: "white", marginRight: 0.5}} label={item.value.start+" - "+item.value.end} onDelete={() => deleteFilter(item.id)} />);
+                          return (<Chip sx={{height: 25, backgroundColor: "white", marginRight: 0.5}} label={item.value.start.format("DD/MM/YYYY")+" - "+item.value.end.format("DD/MM/YYYY")} onDelete={() => deleteFilter(item.id)} />);
                         }else if(item.filterType === "age"){
                           return (<Chip sx={{height: 25, backgroundColor: "white", marginRight: 0.5}} label={item.value} onDelete={() => deleteFilter(item.id)} />);
                         }
