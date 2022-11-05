@@ -68,31 +68,25 @@ function App() {
     });
   };
 
-  const processFilter = async (type) => {
+  const processFilter = (type) => {
+    const uniqueId = () => {return parseInt(Date.now() * Math.random()).toString()};
     if(type === "date"){
       setFilterStack(filterStack.filter(item => item.filterType !== "date"))
-      
       if(baslangicDate !== null || bitisDate !== null){
-        console.log(baslangicDate)
-        setFilterStack(oldStack => [...oldStack, {id:filterIdCounter+1 ,filterType: "date", value: {start: baslangicDate, end: bitisDate}}])
-        await setFilterIdCounter(old => old+1)
+        setFilterStack(oldStack => [...oldStack, {id:uniqueId() ,filterType: "date", value: {start: baslangicDate, end: bitisDate}}])
       }
       
     }else if(type === "age"){
       setFilterStack(filterStack.filter(item => item.filterType !== "age"))
-      console.log(yasCheck.resit, yasCheck.resit_degil)
       if(yasCheck.resit){
-        setFilterStack(oldStack => [...oldStack, {id:filterIdCounter+1 ,filterType: "age", value: "Reşit"}])
-        await setFilterIdCounter(old => old+1)
+        setFilterStack(oldStack => [...oldStack, {id:uniqueId() ,filterType: "age", value: "Reşit"}])
       } 
       if(yasCheck.resit_degil){
-        setFilterStack(oldStack => [...oldStack, {id:filterIdCounter+2 ,filterType: "age", value: "Reşit Değil"}])
-        setFilterIdCounter(old => old+1)
+        setFilterStack(oldStack => [...oldStack, {id:uniqueId() ,filterType: "age", value: "Reşit Değil"}])
       }
     }else if(type === "city"){
       setFilterStack(filterStack.filter(item => item.filterType !== "city"))
-      setFilterStack(oldStack => [...oldStack, {id:filterIdCounter+1 ,filterType: "city", value: selectedCity}])
-      setFilterIdCounter(old => old+1)
+      setFilterStack(oldStack => [...oldStack, {id:uniqueId() ,filterType: "city", value: selectedCity}])
     }
   };
   const deleteFilter = (id) => {
