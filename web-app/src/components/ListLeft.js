@@ -10,6 +10,7 @@ import Modal from '@mui/material/Modal';
 import Fade from '@mui/material/Fade';
 import axios from 'axios';
 import { Button, CircularProgress } from '@mui/material';
+import WarningIcon from '@mui/icons-material/Warning';
 import cities from '../../src/json/cities.json';
 
 const style = {
@@ -80,7 +81,9 @@ export default function ListLeft(props) {
     setSelectedCity(props.data)
     setFilterStack(props.filter)
   },[props.data,props.filter])
-
+  React.useEffect(() => {
+    console.log(sideData);
+  }, [sideData])
   React.useEffect(()=>{
     setIsLoading(true)
     let query = "page="+pageNumber;
@@ -91,7 +94,7 @@ export default function ListLeft(props) {
     let cancel
     axios({
       method: 'GET',
-      url: 'http://localhost:4000/getmurder?'+query,
+      url: 'http://192.168.1.36:4000/getmurder?'+query,
       cancelToken: new axios.CancelToken(c => cancel = c)
     })
     .then(function (response) {
@@ -174,6 +177,12 @@ export default function ListLeft(props) {
           
         })}
         <CircularProgress className={isLoading ? '' : 'hideLoading'} />
+        {!sideData.length && !isLoading && (
+          <Typography>
+            <WarningIcon fontSize='large'></WarningIcon>
+            <h4>No Data Found!</h4>
+          </Typography>
+        )}
       </List>
       <Modal
       aria-labelledby="spring-modal-title"
