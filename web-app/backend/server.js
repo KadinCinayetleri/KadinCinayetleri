@@ -143,4 +143,40 @@ app.get("/getmurder", (req,res) => {
     })
 })
 
+app.get("/getyearchart", (req,res) => {
+    murder.aggregate([
+    {
+        $group: {
+            _id: {$year:{$toDate: "$date"}},
+            count: { $sum: 1 } // this means that the count will increment by 1
+        }
+    },
+    {$sort: {count:1}} 
+    ])
+    .then((items)=>{
+        res.json(items)
+    })
+    .catch((err)=>{
+        console.log(err)
+    })
+})
+
+app.get("/getbywhochart", (req,res) => {
+    murder.aggregate([
+    {
+        $group: {
+            _id: {$year:{$toDate: "$date"}},
+            count: { $sum: 1 } // this means that the count will increment by 1
+        }
+    },
+    {$sort: {count:1}} 
+    ])
+    .then((items)=>{
+        res.json(items)
+    })
+    .catch((err)=>{
+        console.log(err)
+    })
+})
+
 app.listen(4000, () => console.log("server is up and running"))
