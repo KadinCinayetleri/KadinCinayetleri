@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import Navbar from '../components/Navbar'
 import { Grid, Tab, Tabs, Typography } from '@mui/material';
 import YearChart from '../components/YearChart';
+import ByWhoChart from '../components/ByWhoChart';
+import WhyKilledChart from '../components/WhyKilledChart';
 
 function StatisticScreen() {
     const [tabValue, setTabValue] = useState(0);
@@ -33,10 +35,10 @@ function StatisticScreen() {
                     <YearChart />
                 )}
                 {tabValue === 1 && (
-                    <Typography>Fail</Typography>
+                    <ByWhoChart/>
                 )}
                 {tabValue === 2 && (
-                    <Typography>Bahane</Typography>
+                    <WhyKilledChart />
                 )}
                 </Grid>
             </Grid>
