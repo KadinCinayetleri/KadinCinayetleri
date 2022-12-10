@@ -59,6 +59,7 @@ export default function ListLeft(props) {
   const [selectedCity, setSelectedCity] = React.useState(props.data);
   const [pageNumber, setPageNumber] = React.useState(1);
   const [filterStack, setFilterStack] = React.useState(props.filter);
+  const [murderCount, setMurderCount] = React.useState("");
   const observer = React.useRef();
   const lastMurderRef = React.useCallback(node =>{
     if(isLoading || !hasMore) return;
@@ -94,7 +95,7 @@ export default function ListLeft(props) {
     let cancel
     axios({
       method: 'GET',
-      url: 'http://192.168.1.36:4000/getmurder?'+query,
+      url: 'http://localhost:4000/getmurder?'+query,
       cancelToken: new axios.CancelToken(c => cancel = c)
     })
     .then(function (response) {
@@ -105,6 +106,14 @@ export default function ListLeft(props) {
         setHasMore(false)
         setIsLoading(false)
       }
+    });
+    axios({
+      method: 'GET',
+      url: 'http://localhost:4000/getmurdercount?'+query,
+      cancelToken: new axios.CancelToken(c => cancel = c)
+    })
+    .then(function (response) {
+      setMurderCount(response.data)
     });
     return () => cancel()
     
@@ -129,6 +138,16 @@ export default function ListLeft(props) {
   return (
     <Paper style={{height: '92vh', overflow: 'auto'}}>
       <List sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
+        {!sideData.length && !isLoading && (
+          <Typography>
+            <WarningIcon fontSize='large'></WarningIcon>
+            <h4>No Data Found!</h4>
+          </Typography>
+        ) || !isLoading &&(
+          <Typography>
+            <h4 style={{color: "red"}}>{murderCount}</h4>
+          </Typography>
+        )}
         {sideData.map((data, index)=>{
           const date = new Date(data.date).toLocaleDateString("tr-TR")
           if(sideData.length === index + 1){
@@ -177,12 +196,6 @@ export default function ListLeft(props) {
           
         })}
         <CircularProgress className={isLoading ? '' : 'hideLoading'} />
-        {!sideData.length && !isLoading && (
-          <Typography>
-            <WarningIcon fontSize='large'></WarningIcon>
-            <h4>No Data Found!</h4>
-          </Typography>
-        )}
       </List>
       <Modal
       aria-labelledby="spring-modal-title"
