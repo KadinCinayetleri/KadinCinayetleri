@@ -61,6 +61,21 @@ app.get("/getcitycount", (req,res) => {
     })
 })
 
+app.get("/getmurdercount", (req,res) => {
+    const query = req.query
+    const filter = []
+    if(query.city){
+        filter.push({"city": parseInt(query.city)})
+    }
+    murder.countDocuments(filter[0])
+    .then((items)=>{
+        res.json(items)
+    })
+    .catch((err)=>{
+        console.log(err)
+    })
+})
+
 app.get("/getmurder", (req,res) => {
     const query = req.query
     const filter = [
@@ -165,11 +180,47 @@ app.get("/getbywhochart", (req,res) => {
     murder.aggregate([
     {
         $group: {
-            _id: {$year:{$toDate: "$date"}},
+            _id: "$byWho",
             count: { $sum: 1 } // this means that the count will increment by 1
+        },
+        
+    },
+    { "$lookup":
+        {
+        "from": "byWho",
+        "localField": "_id",
+        "foreignField": "id",
+        "as": "_id"
         }
     },
-    {$sort: {count:1}} 
+    {$sort: {count:-1}} 
+    ])
+    .then((items)=>{
+        res.json(items)
+    })
+    .catch((err)=>{
+        console.log(err)
+    })
+})
+
+app.get("/getwhychart", (req,res) => {
+    murder.aggregate([
+    {
+        $group: {
+            _id: "$why",
+            count: { $sum: 1 } // this means that the count will increment by 1
+        },
+        
+    },
+    { "$lookup":
+        {
+        "from": "whyKilled",
+        "localField": "_id",
+        "foreignField": "id",
+        "as": "_id"
+        }
+    },
+    {$sort: {count:-1}} 
     ])
     .then((items)=>{
         res.json(items)
