@@ -64,7 +64,7 @@ function YearChart() {
     };
     return (
         <div style={{width: "80%", margin: "auto auto"}}>
-            <Bar options={options} data={data} />
+            <Bar options={options} data={data} options={{plugins: {legend: {display: false}}}}/>
         </div>
     ) ;
 }
