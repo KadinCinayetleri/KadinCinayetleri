@@ -21,7 +21,11 @@ function HomeScreen() {
   const [baslangicDate, setBaslangicDate] = useState(null);
   const [bitisDate, setBitisDate] = useState(null);
   const [yasCheck, setYasCheck] = useState({resit: false, resit_degil: false});
+  const [failCheck, setFailCheck] = useState([]);
+  const [whyCheck, setWhyCheck] = useState([]);
   const [filterStack, setFilterStack] = useState([]);
+  const [top10ByWho, setTop10ByWho] = useState([]);
+  const [top10Why, setTop10Why] = useState([]);
   useEffect(()=>{
     axios
     .get("http://localhost:4000/getcitycount")
@@ -29,6 +33,32 @@ function HomeScreen() {
       setCityCount(response.data)
     });
   },[])
+  useEffect(()=>{
+    axios
+    .get("http://localhost:4000/getwhykilledtop10")
+    .then(function (response) {
+      setTop10Why(response.data)
+      setWhyCheck({})
+    });
+  },[])
+  useEffect(()=>{
+    axios
+    .get("http://localhost:4000/getbywhotop10")
+    .then(function (response) {
+      setTop10ByWho(response.data)
+      setFailCheck({})
+    });
+  },[])
+  useEffect(()=>{
+    top10ByWho.forEach(element => {
+      setFailCheck(old => ({...old, [element._id[0].id]: false}))
+    });
+  },[top10ByWho])
+  useEffect(()=>{
+    top10Why.forEach(element => {
+      setWhyCheck(old => ({...old, [element._id[0].id]: false}))
+    });
+  },[top10Why])
 
   const handleClick = async ({plateNumber}) => {
     await setSelectedCity(plateNumber)
@@ -66,9 +96,14 @@ function HomeScreen() {
       [event.target.name]: event.target.checked,
     });
   };
-
+  const handleFailCheck = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFailCheck({...failCheck, [event.target.name]: event.target.checked})
+  };
+  const handleBahaneCheck = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setWhyCheck({...whyCheck, [event.target.name]: event.target.checked})
+  };
+  const uniqueId = () => {return parseInt(Date.now() * Math.random()).toString()};
   const processFilter = (type) => {
-    const uniqueId = () => {return parseInt(Date.now() * Math.random()).toString()};
     if(type === "date"){
       setFilterStack(filterStack.filter(item => item.filterType !== "date"))
       if(baslangicDate !== null || bitisDate !== null){
@@ -86,6 +121,20 @@ function HomeScreen() {
     }else if(type === "city"){
       setFilterStack(filterStack.filter(item => item.filterType !== "city"))
       setFilterStack(oldStack => [...oldStack, {id:uniqueId() ,filterType: "city", value: selectedCity}])
+    }else if(type === "byWho"){
+      setFilterStack(filterStack.filter(item => item.filterType !== "byWho"))
+      for (const [key, value] of Object.entries(failCheck)) {
+        if(value === true){
+          setFilterStack(oldStack => [...oldStack, {id:uniqueId() ,filterType: "byWho", value: key}])
+        }
+      }
+    }else if(type === "why"){
+      setFilterStack(filterStack.filter(item => item.filterType !== "why"))
+      for (const [key, value] of Object.entries(whyCheck)) {
+        if(value === true){
+          setFilterStack(oldStack => [...oldStack, {id:uniqueId() ,filterType: "why", value: key}])
+        }
+      }
     }
   };
   const deleteFilter = (id) => {
@@ -115,7 +164,7 @@ function HomeScreen() {
               <AccordionDetails>
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <Grid container rowSpacing={2}>
-                    <Grid item>
+                    <Grid item={true}>
                       <DatePicker
                         label="Başlangıç"
                         value={baslangicDate}
@@ -126,7 +175,7 @@ function HomeScreen() {
                         renderInput={(params) => <TextField {...params} />}
                       />
                     </Grid>
-                    <Grid item>
+                    <Grid item={true}>
                       <DatePicker
                         label="Bitiş"
                         value={bitisDate}
@@ -161,20 +210,62 @@ function HomeScreen() {
                 <Button sx={{height: 40, borderRadius: 1, marginTop: 5, marginLeft:1}} onClick={()=>processFilter("age")} variant="contained" color="success"> Uygula</Button>
               </AccordionDetails>
             </Accordion>
-            
-            
+            <Accordion defaultExpanded={true}>
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                aria-controls="panel1a-content"
+                id="panel1a-header"
+              >
+                <Typography>Fail</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                
+                <FormGroup>
+                  {top10ByWho.map(function(item,i){
+                    return(
+                      <FormControlLabel key={item._id[0]._id} control={<Checkbox />} checked={failCheck[item._id[0].id]} onChange={handleFailCheck} name={item._id[0].id} label={item._id[0].byWho} />
+                    )
+                  })}
+                  
+                </FormGroup>
+                
+                <Button sx={{height: 40, borderRadius: 1, marginTop: 5, marginLeft:1}} onClick={()=>processFilter("byWho")} variant="contained" color="success"> Uygula</Button>
+              </AccordionDetails>
+            </Accordion>
+            <Accordion defaultExpanded={true}>
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                aria-controls="panel1a-content"
+                id="panel1a-header"
+              >
+                <Typography>Bahane</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                
+                <FormGroup>
+                  {top10Why.map(function(item,i){
+                    return(
+                      <FormControlLabel key={item._id[0]._id} control={<Checkbox />} checked={whyCheck[item._id[0].id]} onChange={handleBahaneCheck} name={item._id[0].id} label={item._id[0].why} />
+                    )
+                  })}
+                  
+                </FormGroup>
+                
+                <Button sx={{height: 40, borderRadius: 1, marginTop: 5, marginLeft:1}} onClick={()=>processFilter("why")} variant="contained" color="success"> Uygula</Button>
+              </AccordionDetails>
+            </Accordion>
 
             </Paper>
 
       </Drawer>
       
       <Grid container spacing={2}>
-        <Grid item xs={2}>
+        <Grid item={true} xs={2}>
           <ListLeft data={selectedCity} filter={filterStack}/>
         </Grid>   
-        <Grid item xs={10}  rowSpacing={2}>
-        <Grid sx={{display: "flex", alignItems: "center", justifyContent: "flex-start"}} container xs={12}>
-          <Grid item xs={1}>
+        <Grid item={true} xs={10}>
+        <Grid sx={{display: "flex", alignItems: "center", justifyContent: "flex-start"}} item={true} xs={12}>
+          <Grid item={true} xs={1}>
             <Button sx={{
               height: 25, 
               borderRadius: 5,
@@ -188,7 +279,7 @@ function HomeScreen() {
           </Grid>
           {(filterStack.length !== 0) &&
             
-              <Grid item xs={11}>
+              <Grid item={true} xs={11}>
                 <Box
                   sx={{
                     width: "auto",
@@ -204,14 +295,22 @@ function HomeScreen() {
                   }}
                 >
                   <Grid container spacing={2}>
-                    <Grid sx={{display: "flex", alignItems: "center"}} item xs={11}>
+                    <Grid sx={{display: "flex", alignItems: "center"}} item={true} xs={11}>
                       {filterStack.map(function(item, i){
                         if(item.filterType === "city"){
-                          return (<Chip sx={{height: 25, backgroundColor: "white", marginRight: 0.5}} label={cities.find(city => city.plate === selectedCity).name} onDelete={() => {deleteFilter(item.id); setSelectedCity("")}} />);
+                          return (<Chip key={uniqueId()} sx={{height: 25, backgroundColor: "white", marginRight: 0.5}} label={cities.find(city => city.plate === selectedCity).name} onDelete={() => {deleteFilter(item.id); setSelectedCity("")}} />);
                         }else if(item.filterType === "date"){
-                          return (<Chip sx={{height: 25, backgroundColor: "white", marginRight: 0.5}} label={item.value.start.format("DD/MM/YYYY")+" - "+item.value.end.format("DD/MM/YYYY")} onDelete={() => deleteFilter(item.id)} />);
+                          return (<Chip key={uniqueId()} sx={{height: 25, backgroundColor: "white", marginRight: 0.5}} label={item.value.start.format("DD/MM/YYYY")+" - "+item.value.end.format("DD/MM/YYYY")} onDelete={() => deleteFilter(item.id)} />);
                         }else if(item.filterType === "age"){
-                          return (<Chip sx={{height: 25, backgroundColor: "white", marginRight: 0.5}} label={item.value} onDelete={() => deleteFilter(item.id)} />);
+                          return (<Chip key={uniqueId()} sx={{height: 25, backgroundColor: "white", marginRight: 0.5}} label={item.value} onDelete={() => deleteFilter(item.id)} />);
+                        }else if(item.filterType === "byWho"){
+                          const obj = top10ByWho.find(i => i._id[0].id === parseInt(item.value));
+                          const label = obj ? obj._id[0].byWho : "";
+                          return (<Chip key={uniqueId()} sx={{height: 25, backgroundColor: "white", marginRight: 0.5}} label={"Fail: " + obj._id[0].byWho} onDelete={() => deleteFilter(item.id)} />);
+                        }else if(item.filterType === "why"){
+                          const obj = top10Why.find((i) => i._id[0].id === parseInt(item.value));
+                          const label = obj ? obj._id[0].why : "";
+                          return (<Chip key={uniqueId()} sx={{height: 25, backgroundColor: "white", marginRight: 0.5}} label={"Bahane: " + label} onDelete={() => deleteFilter(item.id)} />);
                         }
                         
                       })}
@@ -224,7 +323,7 @@ function HomeScreen() {
           }
             </Grid>
           
-          <Grid item xs={12}>
+          <Grid item={true} xs={12}>
             <TurkeyMap showTooltip hoverable onClick={handleClick} cityWrapper={renderCity} viewBox={{top: 0, left: 0, width: 1050, height: 585}}></TurkeyMap>
           </Grid>
         </Grid>      
