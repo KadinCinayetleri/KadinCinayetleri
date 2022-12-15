@@ -82,16 +82,12 @@ export default function ListLeft(props) {
     setSelectedCity(props.data)
     setFilterStack(props.filter)
   },[props.data,props.filter])
-  React.useEffect(() => {
-    console.log(sideData);
-  }, [sideData])
   React.useEffect(()=>{
     setIsLoading(true)
     let query = "page="+pageNumber;
     if(filterStack != []){
       query += calcQuery(filterStack);
     }
-    console.log(query)
     let cancel
     axios({
       method: 'GET',
@@ -131,6 +127,12 @@ export default function ListLeft(props) {
       if(element.filterType === "date"){
         query += "&date="+element.value.start.format("YYYY-MM-DD")+element.value.end.format("YYYY-MM-DD")
       }
+      if(element.filterType === "byWho"){
+        query += "&byWho="+element.value
+      }
+      if(element.filterType === "why"){
+        query += "&why="+element.value
+      }
     });
     return query
   }
@@ -139,12 +141,12 @@ export default function ListLeft(props) {
     <Paper style={{height: '92vh', overflow: 'auto'}}>
       <List sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
         {!sideData.length && !isLoading && (
-          <Typography>
+          <Typography component={'span'} variant={'body2'}>
             <WarningIcon fontSize='large'></WarningIcon>
             <h4>No Data Found!</h4>
           </Typography>
         ) || !isLoading &&(
-          <Typography>
+          <Typography component={'span'} variant={'body2'}>
             <h4 style={{color: "red"}}>{murderCount}</h4>
           </Typography>
         )}
