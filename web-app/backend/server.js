@@ -63,11 +63,31 @@ app.get("/getcitycount", (req,res) => {
 
 app.get("/getmurdercount", (req,res) => {
     const query = req.query
-    const filter = []
+    const filter = {}
     if(query.city){
-        filter.push({"city": parseInt(query.city)})
+        filter.city = parseInt(query.city)
+    }else{
+        filter.city = { $ne: 0 }
     }
-    murder.countDocuments(filter[0])
+    if(query.date){
+        const date = query.date
+        filter.date = { $gt: date.slice(0,10), $lte: date.slice(10)}
+    }
+    if(query.age){
+        if(query.age === "Reşit"){
+            filter.age = "Reşit"
+        }else if(query.age === "Reşit Değil"){
+            filter.age = "Reşit Değil"
+        }
+    }
+    if(query.byWho){
+        filter.byWho = { $eq: parseInt(query.byWho)}
+    }
+    if(query.why){
+        filter.why = { $eq: parseInt(query.why)}
+    }
+    console.log(filter)
+    murder.countDocuments(filter)
     .then((items)=>{
         res.json(items)
     })
@@ -78,8 +98,9 @@ app.get("/getmurdercount", (req,res) => {
 
 app.get("/getmurder", (req,res) => {
     const query = req.query
-    const filter = [
-        { "$lookup":
+    const filter = [];
+    const lookup = 
+        [{ "$lookup":
             {
                "from": "whyKilled",
                "localField": "why",
@@ -110,8 +131,7 @@ app.get("/getmurder", (req,res) => {
                "foreignField": "id",
                "as": "howKilled"
             }
-        }
-    ];
+        }]
     if(query.city){
         filter.push({ "$match": {"city": parseInt(query.city)} })
     }else{
@@ -119,7 +139,6 @@ app.get("/getmurder", (req,res) => {
     }
     if(query.date){
         const date = query.date
-        console.log(date.slice(0,10),date.slice(10));
         filter.push({ "$match": { date: { $gt: date.slice(0,10), $lte: date.slice(10)} } })
     }
     if(query.age){
@@ -128,8 +147,16 @@ app.get("/getmurder", (req,res) => {
         }else if(query.age === "Reşit Değil"){
             filter.push({ "$match": { age: { $eq: "Reşit Değil"} } })
         }
-        
     }
+    if(query.byWho){
+        filter.push({ "$match": { byWho: { $eq: parseInt(query.byWho)} } })
+    }
+    if(query.why){
+        filter.push({ "$match": { why: { $eq: parseInt(query.why)} } })
+    }
+    lookup.forEach(element => {
+        filter.push(element)
+    });
     
     murder.aggregate(filter)
     .then((items)=>{
@@ -196,7 +223,7 @@ app.get("/getbywhochart", (req,res) => {
     {$sort: {count:-1}} 
     ])
     .then((items)=>{
-        res.json(items)
+        res.json(items.slice(0,20))
     })
     .catch((err)=>{
         console.log(err)
@@ -223,7 +250,59 @@ app.get("/getwhychart", (req,res) => {
     {$sort: {count:-1}} 
     ])
     .then((items)=>{
-        res.json(items)
+        res.json(items.slice(0,20))
+    })
+    .catch((err)=>{
+        console.log(err)
+    })
+})
+app.get("/getbywhotop10", (req,res) => {
+    murder.aggregate([
+    {
+        $group: {
+            _id: "$byWho",
+            count: { $sum: 1 }, // this means that the count will increment by 1
+        },
+        
+    },
+    { "$lookup":
+        {
+        "from": "byWho",
+        "localField": "_id",
+        "foreignField": "id",
+        "as": "_id"
+        },
+    },
+    {$sort: {count:-1}} 
+    ])
+    .then((items)=>{
+        res.json(items.slice(0, 10))
+    })
+    .catch((err)=>{
+        console.log(err)
+    })
+})
+app.get("/getwhykilledtop10", (req,res) => {
+    murder.aggregate([
+    {
+        $group: {
+            _id: "$why",
+            count: { $sum: 1 }, // this means that the count will increment by 1
+        },
+        
+    },
+    { "$lookup":
+        {
+        "from": "whyKilled",
+        "localField": "_id",
+        "foreignField": "id",
+        "as": "_id"
+        },
+    },
+    {$sort: {count:-1}} 
+    ])
+    .then((items)=>{
+        res.json(items.slice(0, 10))
     })
     .catch((err)=>{
         console.log(err)
