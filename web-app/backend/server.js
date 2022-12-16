@@ -193,6 +193,7 @@ app.get("/getyearchart", (req,res) => {
             count: { $sum: 1 } // this means that the count will increment by 1
         }
     },
+    { "$match": {city: { $ne: 0 }} },
     {$sort: {count:1}} 
     ])
     .then((items)=>{
@@ -212,6 +213,7 @@ app.get("/getbywhochart", (req,res) => {
         },
         
     },
+    { "$match": {city: { $ne: 0 }} },
     { "$lookup":
         {
         "from": "byWho",
@@ -247,6 +249,7 @@ app.get("/getwhychart", (req,res) => {
         "as": "_id"
         }
     },
+    { "$match": {city: { $ne: 0 }} },
     {$sort: {count:-1}} 
     ])
     .then((items)=>{
