@@ -322,10 +322,20 @@ function HomeScreen() {
               </Grid>
           }
             </Grid>
-          
+            
           <Grid item={true} xs={12}>
             <TurkeyMap showTooltip hoverable onClick={handleClick} cityWrapper={renderCity} viewBox={{top: 0, left: 0, width: 1050, height: 585}}></TurkeyMap>
           </Grid>
+          <Grid style={{display: "block", marginTop: "10vh"}} item={true} xs={12}>
+              <Chip style={{backgroundColor: "black", color: "white", marginRight: "1vh", marginBottom: "1vh"}} label="Veri Yok" />
+              <Chip style={{backgroundColor: "#FFB3B2", color: "white", marginRight: "1vh", marginBottom: "1vh"}} label="1-25" />
+              <Chip style={{backgroundColor: "#ff9a9b", color: "white", marginRight: "1vh", marginBottom: "1vh"}} label="25-50" />
+              <Chip style={{backgroundColor: "#ff817e", color: "white", marginRight: "1vh", marginBottom: "1vh"}} label="50-75" />
+              <Chip style={{backgroundColor: "#ff6865", color: "white", marginRight: "1vh", marginBottom: "1vh"}} label="75-100" />
+              <Chip style={{backgroundColor: "#ff4f4b", color: "white", marginRight: "1vh", marginBottom: "1vh"}} label="100-150" />
+              <Chip style={{backgroundColor: "#ff3632", color: "white", marginRight: "1vh", marginBottom: "1vh"}} label="150-200" />
+              <Chip style={{backgroundColor: "#900000", color: "white", marginRight: "1vh", marginBottom: "1vh"}} label="200+" />
+            </Grid>
         </Grid>      
       </Grid>     
     </div>
