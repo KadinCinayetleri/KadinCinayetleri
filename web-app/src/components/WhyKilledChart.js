@@ -30,7 +30,7 @@ function WhyKilledChart() {
           },
         ],
       };
-    return <div style={{width: "40%", margin: "auto auto"}}><Doughnut data={data} options={{plugins: {legend: {display: false}}}}/></div>;
+    return <div style={{width: "40%", margin: "auto auto", display: "block"}}><Doughnut data={data}/></div>;
 }
 
 export default WhyKilledChart;
