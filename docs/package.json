@@ -1,7 +1,7 @@
 {
   "name": "web-app",
   "version": "0.1.0",
-  "homepage": "https://kadincinayetleri.github.io/kadincinayetleri",
+  "homepage": "https://kadincinayetleri.github.io/KadinCinayetleri",
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.10.4",
