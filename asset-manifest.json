@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/kadincinayetleri/static/css/main.9c5387a3.css",
+    "main.js": "/kadincinayetleri/static/js/main.d96aef78.js",
+    "static/js/787.c6006e9a.chunk.js": "/kadincinayetleri/static/js/787.c6006e9a.chunk.js",
+    "index.html": "/kadincinayetleri/index.html",
+    "main.9c5387a3.css.map": "/kadincinayetleri/static/css/main.9c5387a3.css.map",
+    "main.d96aef78.js.map": "/kadincinayetleri/static/js/main.d96aef78.js.map",
+    "787.c6006e9a.chunk.js.map": "/kadincinayetleri/static/js/787.c6006e9a.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.9c5387a3.css",
+    "static/js/main.d96aef78.js"
+  ]
+}
