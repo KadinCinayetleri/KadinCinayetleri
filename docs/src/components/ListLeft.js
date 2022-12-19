@@ -11,7 +11,7 @@ import Fade from '@mui/material/Fade';
 import axios from 'axios';
 import { Button, CircularProgress } from '@mui/material';
 import WarningIcon from '@mui/icons-material/Warning';
-import cities from '../../src/json/cities.json';
+import cities from '../json/cities.json';
 
 const style = {
   position: 'absolute',
